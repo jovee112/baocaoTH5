@@ -1,0 +1,35 @@
+PHÂN CÔNG NHIỆM VỤ CỤ THỂ:
+
+📌 Bạn Hồ Đức Mạnh:
+
+Task: Hoàn thiện UI cho Card sinh viên và trang giới thiệu nhóm.
+
+File: lib/widgets/student_card.dart và lib/views/about_screen.dart.
+
+Yêu cầu: Chỉ cần giao diện đẹp theo Material 3, dùng dữ liệu mẫu mình đã để sẵn.
+
+📌 Bạn Nông Lan Anh:
+
+Task: Làm Dashboard thống kê bằng biểu đồ.
+
+File: lib/views/dashboard_screen.dart.
+
+Yêu cầu: Dùng thư viện fl_chart để thống kê tỷ lệ GPA của sinh viên từ StudentProvider.
+
+📌 Bạn Nguyễn Thành Dương:
+
+Task: Xây dựng Form thêm và chỉnh sửa sinh viên.
+
+File: lib/views/add_student_screen.dart.
+
+Yêu cầu: Có Validate dữ liệu (không bỏ trống, GPA đúng định dạng). Khi bấm lưu phải gọi được hàm addStudent.
+
+📌 Bạn Trần Ngọc Lương:
+
+Task: Hoàn thiện Logic CRUD và Tìm kiếm.
+
+File: lib/providers/student_provider.dart.
+
+Yêu cầu: Viết thêm hàm updateStudent và searchStudent kết nối với Firestore qua FirebaseService.
+
+📌 Mình (Trưởng nhóm): Mình sẽ hỗ trợ mọi người gộp code (Merge), fix lỗi kết nối Firebase và kiểm soát tiến độ chung.
