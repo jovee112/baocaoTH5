@@ -1,0 +1,7 @@
+Khi promt code cho AI, dán những nội dung sau đay vào cùng:
+Flutter Material 3.
+
+Quản lý trạng thái bằng Provider trong file lib/providers/student_provider.dart.
+
+Dữ liệu dựa trên model trong file lib/models/student.dart.
+Hãy viết code gọn gàng, tách nhỏ các Widget nếu có thể.' "*
