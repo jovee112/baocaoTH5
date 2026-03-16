@@ -11,7 +11,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         // Chú ý: Cú pháp định danh theo yêu cầu các bài thực hành trước
-        title: const Text("Quản lý Sinh viên - Nhóm [Số nhóm]"),
+        title: const Text("Quản lý Sinh viên - Nhóm 4"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),

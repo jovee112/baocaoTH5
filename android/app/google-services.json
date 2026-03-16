@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "340198289540",
+    "project_id": "student-manager-nhom4",
+    "storage_bucket": "student-manager-nhom4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:340198289540:android:0187988a0c1abf69b9d2d1",
+        "android_client_info": {
+          "package_name": "com.example.quan_ly_sinh_vien"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAW-GkbhtlMxrB7m5QBTBWzv_j4Rvx8znE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

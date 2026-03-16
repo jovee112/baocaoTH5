@@ -1,30 +1,41 @@
 import 'package:flutter/material.dart';
 import '../models/student.dart';
+import '../services/firebase_service.dart'; // Đảm bảo bạn đã tạo file này
 
 class StudentProvider with ChangeNotifier {
-  // Danh sách sinh viên mẫu để cả nhóm có cái hiển thị ngay
-  final List<Student> _students = [
-    Student(
-      id: '1',
-      name: 'Nguyễn Văn A',
-      studentId: 'SV001',
-      className: 'Mobile01',
-      gpa: 3.5,
-      email: 'a@gmail.com',
-    ),
-  ];
+  // Khởi tạo service để giao tiếp với Firebase
+  final FirebaseService _firebaseService = FirebaseService();
+
+  // Danh sách sinh viên bây giờ sẽ lấy từ Firebase thay vì hardcode
+  List<Student> _students = [];
 
   List<Student> get students => _students;
 
-  // Hàm thêm sinh viên (Thành viên làm Form sẽ gọi hàm này)
-  void addStudent(Student student) {
-    _students.add(student);
-    notifyListeners(); // Thông báo để UI tự cập nhật (Bài 1)
+  // 1. Hàm lấy dữ liệu (Hàm này giúp hết lỗi ở main.dart)
+  void fetchStudents() {
+    _firebaseService.getStudents().listen((studentList) {
+      _students = studentList;
+      notifyListeners(); // Cập nhật UI khi dữ liệu trên Firebase thay đổi
+    });
   }
 
-  // Hàm xóa sinh viên (Thành viên làm chức năng Xóa sẽ gọi)
-  void deleteStudent(String id) {
-    _students.removeWhere((s) => s.id == id);
-    notifyListeners();
+  // 2. Hàm thêm sinh viên lên Firebase
+  Future<void> addStudent(Student student) async {
+    try {
+      await _firebaseService.addStudent(student);
+      // Lưu ý: Không cần notifyListeners() ở đây vì hàm fetchStudents
+      // đang lắng nghe Stream từ Firebase, nó sẽ tự cập nhật khi có data mới.
+    } catch (e) {
+      debugPrint("Lỗi khi thêm sinh viên: $e");
+    }
+  }
+
+  // 3. Hàm xóa sinh viên khỏi Firebase
+  Future<void> deleteStudent(String id) async {
+    try {
+      await _firebaseService.deleteStudent(id);
+    } catch (e) {
+      debugPrint("Lỗi khi xóa sinh viên: $e");
+    }
   }
 }
