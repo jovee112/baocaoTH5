@@ -1,0 +1,52 @@
+CONTEXT CHUNG (Tất cả thành viên phải dùng)
+"Tôi đang làm dự án Flutter Quản lý sinh viên. Dự án đã có:
+
+Model: Student (id, name, studentId, className, gpa, email, avatarUrl).
+
+State Management: Provider (file student_provider.dart).
+
+UI: Material 3, Google Fonts.
+Hãy viết code tuân thủ các file này, tách nhỏ widget và sử dụng tên biến tiếng Anh đúng chuẩn."
+
+
+1. Hồ Đức Mạnh (Làm UI Card & Trang About)
+Prompt làm Card:
+
+"Dựa trên Context Chung, hãy hoàn thiện file lib/widgets/student_card.dart. Thiết kế một thẻ sinh viên đẹp với:
+
+Ảnh đại diện hình tròn (CircleAvatar).
+
+Tên sinh viên in đậm, mã số sinh viên bên dưới.
+
+Hiển thị một Badge nhỏ ở góc để hiện điểm GPA (ví dụ: GPA > 3.2 là màu xanh, < 2.0 là màu đỏ).
+
+Thêm hiệu ứng bo góc và đổ bóng nhẹ (Elevation) cho Card."
+
+Prompt làm trang About:
+
+"Hãy tạo màn hình lib/views/about_screen.dart. Hiển thị danh sách 5 thành viên nhóm trong một ListView. Mỗi thành viên gồm Tên và Vai trò. Thêm logo ứng dụng ở phía trên cùng và nút quay lại ở AppBar."
+
+2. Nông Lan Anh (Làm Dashboard & Thống kê)
+Prompt làm biểu đồ:
+
+"Sử dụng thư viện fl_chart, hãy tạo một Widget hiển thị biểu đồ tròn (PieChart) thống kê tỷ lệ học lực sinh viên lấy từ StudentProvider. Chia thành 4 nhóm: Xuất sắc (GPA >= 3.6), Giỏi (3.2-3.5), Khá (2.5-3.1), Trung bình (< 2.5). Hiển thị chú thích màu sắc rõ ràng."
+
+3. Nguyễn Thành Dương (Làm Form Add/Edit)
+Prompt làm Form:
+
+"Tạo màn hình lib/views/add_student_screen.dart. Sử dụng Form và TextFormField để nhập: Tên, MSSV, Lớp, Email, GPA.
+
+Validate: Tên không để trống, Email phải đúng định dạng, GPA phải là số từ 0 đến 4.0.
+
+Khi bấm 'Lưu', hãy gọi hàm addStudent từ StudentProvider và quay lại màn hình trước. Sử dụng showDatePicker để chọn ngày sinh."
+
+4. Trần Ngọc Lương (Làm Logic & CRUD nâng cao)
+Prompt xử lý Logic:
+
+"Hãy cập nhật lib/providers/student_provider.dart. Viết thêm logic cho các hàm:
+
+updateStudent(Student student): Tìm và cập nhật thông tin sinh viên theo ID.
+
+searchStudents(String query): Trả về danh sách sinh viên lọc theo tên hoặc MSSV.
+
+Kết nối các hàm này với notifyListeners() để UI cập nhật realtime."
