@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/student_provider.dart';
 import '../widgets/student_card.dart';
+import 'add_student_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,8 +11,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Chú ý: Cú pháp định danh theo yêu cầu các bài thực hành trước
-        title: const Text("Quản lý Sinh viên - Nhóm [Số nhóm]"),
+        title: const Text("Quản lý Sinh viên - Nhóm 4"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
@@ -33,9 +33,10 @@ class HomeScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Thành viên làm màn hình Add sẽ điều hướng ở đây
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Chức năng Thêm đang phát triển")),
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AddStudentScreen(),
+            ),
           );
         },
         child: const Icon(Icons.add),

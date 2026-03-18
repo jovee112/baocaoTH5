@@ -27,4 +27,26 @@ class StudentProvider with ChangeNotifier {
     _students.removeWhere((s) => s.id == id);
     notifyListeners();
   }
+
+  // Hàm cập nhật sinh viên (Trần Ngọc Lương - Chức năng 4)
+  void updateStudent(Student student) {
+    final index = _students.indexWhere((s) => s.id == student.id);
+    if (index != -1) {
+      _students[index] = student;
+      notifyListeners(); // Thông báo để UI tự cập nhật
+    }
+  }
+
+  // Hàm tìm kiếm sinh viên theo tên hoặc MSSV (Trần Ngọc Lương - Chức năng 4)
+  List<Student> searchStudents(String query) {
+    if (query.isEmpty) {
+      return _students;
+    }
+    
+    final lowerQuery = query.toLowerCase();
+    return _students.where((student) {
+      return student.name.toLowerCase().contains(lowerQuery) ||
+          student.studentId.toLowerCase().contains(lowerQuery);
+    }).toList();
+  }
 }

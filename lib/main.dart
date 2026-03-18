@@ -21,11 +21,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Student Manager',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true, // Tuân thủ yêu cầu Material 3
+        useMaterial3: true,
       ),
-      home: const HomeScreen(), // Bạn tạo file HomeScreen trắng ở bước sau
+      home: const HomeScreen(),
     );
   }
 }

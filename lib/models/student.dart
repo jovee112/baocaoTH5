@@ -6,6 +6,7 @@ class Student {
   double gpa;
   String email;
   String? avatarUrl;
+  DateTime? birthDate; // Ngày sinh
 
   Student({
     required this.id,
@@ -15,6 +16,7 @@ class Student {
     required this.gpa,
     required this.email,
     this.avatarUrl,
+    this.birthDate,
   });
 
   // Đây là chìa khóa để dùng với Agent/API
@@ -26,5 +28,6 @@ class Student {
         'gpa': gpa,
         'email': email,
         'avatarUrl': avatarUrl,
+        'birthDate': birthDate?.toIso8601String(),
       };
 }
