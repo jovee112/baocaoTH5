@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+      "name": "Windows",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/windows/**",
+        "E:/flutter/bin/cache/artifacts/engine/windows-x64-release",
+        "E:/flutter/bin/cache/artifacts/engine/windows-x64",
+        "E:/flutter/bin/cache/artifacts/engine/common",
+        "${workspaceFolder}/windows/flutter"
+      ],
+      "defines": [],
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "windows-msvc-x64"
+    }
+  ],
+  "version": 4
+}
