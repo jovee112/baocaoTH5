@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +10,7 @@ import '../utils/string_utils.dart';
 class AddStudentScreen extends StatefulWidget {
   final Student? editingStudent;
 
-  const AddStudentScreen({Key? key, this.editingStudent}) : super(key: key);
+  const AddStudentScreen({super.key, this.editingStudent});
 
   @override
   State<AddStudentScreen> createState() => _AddStudentScreenState();
@@ -78,7 +77,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     if (value == null || value.isEmpty) {
       return 'Email không được để trống';
     }
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     if (!emailRegex.hasMatch(value)) {
       return 'Email không đúng định dạng';
     }
@@ -114,31 +114,24 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   }
 
   Future<void> _pickBirthDate() async {
-    await showCupertinoModalPopup<void>(
+    final DateTime? picked = await showDatePicker(
       context: context,
-      builder: (BuildContext context) => Container(
-        height: 216,
-        padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        color: CupertinoColors.systemBackground.resolveFrom(context),
-        child: SafeArea(
-          top: false,
-          child: CupertinoDatePicker(
-            initialDateTime: _selectedBirthDate ?? DateTime.now(),
-            mode: CupertinoDatePickerMode.date,
-            maximumDate: DateTime.now(),
-            minimumDate: DateTime(1990),
-            onDateTimeChanged: (DateTime newDate) {
-              setState(() {
-                _selectedBirthDate = newDate;
-              });
-            },
-          ),
-        ),
-      ),
+      initialDate: _selectedBirthDate ?? DateTime.now(),
+      firstDate: DateTime(1990),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
+
+    if (picked != null) {
+      setState(() {
+        _selectedBirthDate = picked;
+      });
+    }
   }
 
   void _saveStudent() {
@@ -148,7 +141,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
     final studentProvider =
         Provider.of<StudentProvider>(context, listen: false);
-    
+
     final newStudent = Student(
       id: widget.editingStudent?.id ?? const Uuid().v4(),
       name: capitalizeName(_nameController.text.trim()),
@@ -182,7 +175,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.editingStudent != null ? 'Chỉnh sửa sinh viên' : 'Thêm sinh viên mới',
+          widget.editingStudent != null
+              ? 'Chỉnh sửa sinh viên'
+              : 'Thêm sinh viên mới',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -238,7 +233,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 label: 'GPA',
                 hint: 'Nhập GPA (0-4.0)',
                 prefixIcon: Icons.grade,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 validator: _validateGpa,
               ),
               const SizedBox(height: 16),

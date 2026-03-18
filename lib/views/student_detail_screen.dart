@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../providers/student_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/student.dart';
 import 'add_student_screen.dart';
@@ -8,9 +10,9 @@ class StudentDetailScreen extends StatelessWidget {
   final Student student;
 
   const StudentDetailScreen({
-    Key? key,
+    super.key,
     required this.student,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -185,11 +187,13 @@ class StudentDetailScreen extends StatelessWidget {
   Widget _buildEditButton(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: () {
-        Navigator.of(context).push(
+        Navigator.of(context)
+            .push(
           MaterialPageRoute(
             builder: (context) => AddStudentScreen(editingStudent: student),
           ),
-        ).then((_) {
+        )
+            .then((_) {
           Navigator.of(context).pop();
         });
       },
@@ -233,9 +237,14 @@ class StudentDetailScreen extends StatelessWidget {
                   child: const Text('Hủy'),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // TODO: Gọi hàm xóa từ Provider
+                  onPressed: () async {
                     Navigator.of(ctx).pop();
+                    final provider =
+                        Provider.of<StudentProvider>(context, listen: false);
+                    await provider.deleteStudent(student.id);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Xóa sinh viên thành công')),
+                    );
                     Navigator.of(context).pop();
                   },
                   child: const Text(

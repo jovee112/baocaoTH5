@@ -1,52 +1,125 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+
 import '../models/student.dart';
+import '../services/firebase_service.dart';
 
-class StudentProvider with ChangeNotifier {
-  // Danh sách sinh viên mẫu để cả nhóm có cái hiển thị ngay
-  final List<Student> _students = [
-    Student(
-      id: '1',
-      name: 'Nguyễn Văn A',
-      studentId: 'SV001',
-      className: 'Mobile01',
-      gpa: 3.5,
-      email: 'a@gmail.com',
-    ),
-  ];
+class StudentProvider extends ChangeNotifier {
+  StudentProvider({FirebaseService? firebaseService})
+      : _firebaseService = firebaseService ?? FirebaseService();
 
-  List<Student> get students => _students;
+  final FirebaseService _firebaseService;
+  StreamSubscription<List<Student>>? _studentsSubscription;
 
-  // Hàm thêm sinh viên (Thành viên làm Form sẽ gọi hàm này)
-  void addStudent(Student student) {
-    _students.add(student);
-    notifyListeners(); // Thông báo để UI tự cập nhật (Bài 1)
+  List<Student> _students = [];
+  List<Student> _filteredStudents = [];
+  String _searchQuery = '';
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  List<Student> get students => _filteredStudents;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+
+  // Tương thích ngược với code cũ trong main.dart.
+  void fetchStudents() => loadStudents();
+
+  void loadStudents() {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    _studentsSubscription?.cancel();
+    _studentsSubscription = _firebaseService.getStudents().listen(
+      (studentList) {
+        _students = studentList;
+        _applyFilter(_searchQuery);
+        _isLoading = false;
+        notifyListeners();
+      },
+      onError: (error) {
+        _isLoading = false;
+        _errorMessage = 'Không thể tải danh sách sinh viên';
+        debugPrint('Lỗi khi load students: $error');
+        notifyListeners();
+      },
+    );
   }
 
-  // Hàm xóa sinh viên (Thành viên làm chức năng Xóa sẽ gọi)
-  void deleteStudent(String id) {
-    _students.removeWhere((s) => s.id == id);
+  Future<void> addStudent(Student student) async {
+    try {
+      await _firebaseService.addStudent(student);
+    } catch (e) {
+      _errorMessage = 'Không thể thêm sinh viên';
+      debugPrint('Lỗi khi thêm sinh viên: $e');
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateStudent(Student student) async {
+    try {
+      await _firebaseService.updateStudent(student);
+      // Cập nhật local cache để UI phản ánh ngay thay đổi
+      final index = _students.indexWhere((s) => s.id == student.id);
+      if (index != -1) {
+        _students[index] = student;
+        _applyFilter(_searchQuery);
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = 'Không thể cập nhật sinh viên';
+      debugPrint('Lỗi khi cập nhật sinh viên: $e');
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteStudent(String id) async {
+    // Optimistic remove from local cache so UI cập nhật ngay.
+    final index = _students.indexWhere((s) => s.id == id);
+    Student? removed;
+    if (index != -1) {
+      removed = _students.removeAt(index);
+      _applyFilter(_searchQuery);
+      notifyListeners();
+    }
+
+    try {
+      await _firebaseService.deleteStudent(id);
+    } catch (e) {
+      // Nếu xóa trên server thất bại, phục hồi local cache và báo lỗi.
+      if (removed != null) {
+        _students.insert(index, removed);
+        _applyFilter(_searchQuery);
+        notifyListeners();
+      }
+      _errorMessage = 'Không thể xóa sinh viên';
+      debugPrint('Lỗi khi xóa sinh viên: $e');
+    }
+  }
+
+  void searchStudent(String query) {
+    _searchQuery = query.trim();
+    _applyFilter(_searchQuery);
     notifyListeners();
   }
 
-  // Hàm cập nhật sinh viên (Trần Ngọc Lương - Chức năng 4)
-  void updateStudent(Student student) {
-    final index = _students.indexWhere((s) => s.id == student.id);
-    if (index != -1) {
-      _students[index] = student;
-      notifyListeners(); // Thông báo để UI tự cập nhật
+  void _applyFilter(String query) {
+    if (query.isEmpty) {
+      _filteredStudents = List<Student>.from(_students);
+      return;
     }
+
+    final normalizedQuery = query.toLowerCase();
+    _filteredStudents = _students.where((student) {
+      final byName = student.name.toLowerCase().contains(normalizedQuery);
+      final byMssv = student.studentId.toLowerCase().contains(normalizedQuery);
+      return byName || byMssv;
+    }).toList();
   }
 
-  // Hàm tìm kiếm sinh viên theo tên hoặc MSSV (Trần Ngọc Lương - Chức năng 4)
-  List<Student> searchStudents(String query) {
-    if (query.isEmpty) {
-      return _students;
-    }
-    
-    final lowerQuery = query.toLowerCase();
-    return _students.where((student) {
-      return student.name.toLowerCase().contains(lowerQuery) ||
-          student.studentId.toLowerCase().contains(lowerQuery);
-    }).toList();
+  @override
+  void dispose() {
+    _studentsSubscription?.cancel();
+    super.dispose();
   }
 }
