@@ -2,37 +2,55 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/student.dart';
 
 class FirebaseService {
-  // Tham chiếu đến bảng 'students' trên Firestore
-  final CollectionReference _studentCollection =
-      FirebaseFirestore.instance.collection('students');
+  static const String _studentsCollectionName = 'students';
+  final CollectionReference<Map<String, dynamic>> _studentCollection =
+      FirebaseFirestore.instance.collection(_studentsCollectionName);
 
-  // 1. Lấy danh sách sinh viên (Stream để cập nhật realtime)
+  // Lắng nghe dữ liệu realtime từ Firestore.
   Stream<List<Student>> getStudents() {
-    return _studentCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        // Gán lại id từ document của Firebase
-        data['id'] = doc.id;
-        return Student(
-          id: data['id'],
-          name: data['name'] ?? '',
-          studentId: data['studentId'] ?? '',
-          className: data['className'] ?? '',
-          gpa: (data['gpa'] ?? 0.0).toDouble(),
-          email: data['email'] ?? '',
-          avatarUrl: data['avatarUrl'],
+    return _studentCollection.snapshots().map(
+          (snapshot) => snapshot.docs
+              .map((doc) => _mapDocumentToStudent(doc.id, doc.data()))
+              .toList(),
         );
-      }).toList();
-    });
   }
 
-  // 2. Thêm sinh viên mới
-  Future<void> addStudent(Student student) {
-    return _studentCollection.add(student.toJson());
+  Future<void> addStudent(Student student) async {
+    final data = _mapStudentToFirestore(student)..remove('id');
+    await _studentCollection.add(data);
   }
 
-  // 3. Xóa sinh viên
-  Future<void> deleteStudent(String id) {
-    return _studentCollection.doc(id).delete();
+  Future<void> updateStudent(Student student) async {
+    final data = _mapStudentToFirestore(student)..remove('id');
+    await _studentCollection.doc(student.id).update(data);
+  }
+
+  Future<void> deleteStudent(String id) async {
+    await _studentCollection.doc(id).delete();
+  }
+
+  Student _mapDocumentToStudent(String docId, Map<String, dynamic> data) {
+    return Student(
+      id: docId,
+      name: (data['name'] as String?) ?? '',
+      studentId: (data['studentId'] as String?) ?? '',
+      className: (data['className'] as String?) ?? '',
+      gpa: (data['gpa'] as num?)?.toDouble() ?? 0.0,
+      email: (data['email'] as String?) ?? '',
+      avatarUrl: data['avatarUrl'] as String?,
+    );
+  }
+
+  // Ưu tiên toMap(), fallback sang toJson() để tương thích model hiện tại.
+  Map<String, dynamic> _mapStudentToFirestore(Student student) {
+    final dynamic dynamicStudent = student;
+
+    try {
+      final map = dynamicStudent.toMap() as Map<String, dynamic>;
+      return Map<String, dynamic>.from(map);
+    } catch (_) {
+      final map = dynamicStudent.toJson() as Map<String, dynamic>;
+      return Map<String, dynamic>.from(map);
+    }
   }
 }
