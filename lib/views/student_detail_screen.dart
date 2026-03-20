@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/student_provider.dart';
 import 'package:intl/intl.dart';
@@ -20,7 +19,7 @@ class StudentDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Chi tiết sinh viên',
-          style: GoogleFonts.poppins(
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -113,7 +112,7 @@ class StudentDetailScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             student.name,
-            style: GoogleFonts.poppins(
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -128,7 +127,7 @@ class StudentDetailScreen extends StatelessWidget {
             ),
             child: Text(
               'GPA: ${student.gpa.toStringAsFixed(2)}',
-              style: GoogleFonts.poppins(
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
@@ -161,7 +160,7 @@ class StudentDetailScreen extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: GoogleFonts.poppins(
+                  style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade600,
                     fontWeight: FontWeight.w500,
@@ -170,7 +169,7 @@ class StudentDetailScreen extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: GoogleFonts.poppins(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
@@ -200,7 +199,7 @@ class StudentDetailScreen extends StatelessWidget {
       icon: const Icon(Icons.edit),
       label: Text(
         'Chỉnh sửa',
-        style: GoogleFonts.poppins(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
@@ -225,11 +224,11 @@ class StudentDetailScreen extends StatelessWidget {
             return AlertDialog(
               title: Text(
                 'Xác nhận xóa',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               content: Text(
                 'Bạn có chắc chắn muốn xóa sinh viên này?',
-                style: GoogleFonts.poppins(),
+                style: const TextStyle(),
               ),
               actions: [
                 TextButton(
@@ -260,7 +259,7 @@ class StudentDetailScreen extends StatelessWidget {
       icon: const Icon(Icons.delete),
       label: Text(
         'Xóa',
-        style: GoogleFonts.poppins(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
