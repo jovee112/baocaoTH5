@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../models/student.dart';
@@ -178,7 +177,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           widget.editingStudent != null
               ? 'Chỉnh sửa sinh viên'
               : 'Thêm sinh viên mới',
-          style: GoogleFonts.poppins(
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -284,7 +283,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           _selectedBirthDate != null
               ? DateFormat('dd/MM/yyyy').format(_selectedBirthDate!)
               : 'Chưa chọn',
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             color: _selectedBirthDate != null ? Colors.black : Colors.grey,
           ),
         ),
@@ -332,7 +331,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           vertical: 12,
         ),
       ),
-      style: GoogleFonts.poppins(),
+      style: const TextStyle(),
     );
   }
 
@@ -342,7 +341,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       icon: const Icon(Icons.save),
       label: Text(
         widget.editingStudent != null ? 'Cập nhật' : 'Lưu',
-        style: GoogleFonts.poppins(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
@@ -364,7 +363,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       icon: const Icon(Icons.close),
       label: Text(
         'Hủy',
-        style: GoogleFonts.poppins(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
