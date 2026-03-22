@@ -73,6 +73,30 @@ class StudentDetailScreen extends StatelessWidget {
                   icon: Icons.calendar_today,
                 ),
               ],
+              if (student.faculty != null) ...[
+                const SizedBox(height: 16),
+                _buildInfoCard(
+                  label: 'Khoa',
+                  value: student.faculty!,
+                  icon: Icons.school,
+                ),
+              ],
+              if (student.major != null) ...[
+                const SizedBox(height: 16),
+                _buildInfoCard(
+                  label: 'Ngành',
+                  value: student.major!,
+                  icon: Icons.business_center,
+                ),
+              ],
+              if (student.yearIn != null) ...[
+                const SizedBox(height: 16),
+                _buildInfoCard(
+                  label: 'Khóa',
+                  value: 'Khóa ${student.yearIn}',
+                  icon: Icons.calendar_month,
+                ),
+              ],
               const SizedBox(height: 32),
               _buildEditButton(context),
               const SizedBox(height: 12),
@@ -88,27 +112,59 @@ class StudentDetailScreen extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: Colors.blue.shade100,
-            child: student.avatarUrl != null && student.avatarUrl!.isNotEmpty
-                ? Image.network(
-                    student.avatarUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.blue.shade700,
-                      );
-                    },
-                  )
-                : Icon(
-                    Icons.person,
-                    size: 60,
-                    color: Colors.blue.shade700,
-                  ),
-          ),
+          if (student.avatarUrl != null && student.avatarUrl!.isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network(
+                student.avatarUrl!,
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      size: 80,
+                      color: Colors.blue.shade700,
+                    ),
+                  );
+                },
+              ),
+            )
+          else
+            Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.person,
+                size: 80,
+                color: Colors.blue.shade700,
+              ),
+            ),
           const SizedBox(height: 16),
           Text(
             student.name,

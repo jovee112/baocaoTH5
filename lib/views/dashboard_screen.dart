@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/student.dart';
 import '../providers/student_provider.dart';
 import '../widgets/student_card.dart';
+import '../constants/faculties_and_majors.dart';
 import 'add_student_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -16,6 +17,10 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final TextEditingController _searchController = TextEditingController();
+  String? _selectedFaculty;
+  String? _selectedClass;
+  String? _selectedMajor;
+  String? _selectedPerformance; // Xuất sắc, Giỏi, Khá, Trung bình
 
   @override
   void dispose() {
@@ -23,11 +28,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
+  List<Student> _applyFilters(List<Student> students) {
+    return students.where((student) {
+      // Lọc theo khoa
+      if (_selectedFaculty != null && student.faculty != _selectedFaculty) {
+        return false;
+      }
+
+      // Lọc theo lớp
+      if (_selectedClass != null && student.className != _selectedClass) {
+        return false;
+      }
+
+      // Lọc theo ngành
+      if (_selectedMajor != null && student.major != _selectedMajor) {
+        return false;
+      }
+
+      // Lọc theo loại học lực
+      if (_selectedPerformance != null) {
+        switch (_selectedPerformance) {
+          case 'Xuất sắc':
+            if (student.gpa < 3.6) return false;
+            break;
+          case 'Giỏi':
+            if (student.gpa < 3.2 || student.gpa >= 3.6) return false;
+            break;
+          case 'Khá':
+            if (student.gpa < 2.5 || student.gpa >= 3.2) return false;
+            break;
+          case 'Trung bình':
+            if (student.gpa >= 2.5) return false;
+            break;
+        }
+      }
+
+      return true;
+    }).toList();
+  }
+
+  Set<String> _getAvailableClasses(List<Student> students) {
+    return students.map((s) => s.className).toSet();
+  }
+
   @override
   Widget build(BuildContext context) {
     final studentProvider = context.watch<StudentProvider>();
-    final students = studentProvider.students;
-    final stats = _GpaStats.from(students);
+    final allStudents = studentProvider.students;
+    final filteredStudents = _applyFilters(allStudents);
+    final stats = _GpaStats.from(filteredStudents);
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
@@ -101,9 +150,133 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
+          // Filters Section
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    // Filter by Faculty
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: const Text('Khoa'),
+                        avatar: _selectedFaculty != null
+                            ? const Icon(Icons.school)
+                            : null,
+                        onSelected: (selected) {
+                          if (!selected) {
+                            setState(() => _selectedFaculty = null);
+                          } else {
+                            _showFacultyFilter();
+                          }
+                        },
+                        selected: _selectedFaculty != null,
+                      ),
+                    ),
+                    // Filter by Class
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: const Text('Lớp'),
+                        avatar: _selectedClass != null
+                            ? const Icon(Icons.class_)
+                            : null,
+                        onSelected: (selected) {
+                          if (!selected) {
+                            setState(() => _selectedClass = null);
+                          } else {
+                            _showClassFilter(_getAvailableClasses(allStudents));
+                          }
+                        },
+                        selected: _selectedClass != null,
+                      ),
+                    ),
+                    // Filter by Major
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: const Text('Ngành'),
+                        avatar: _selectedMajor != null
+                            ? const Icon(Icons.business_center)
+                            : null,
+                        onSelected: (selected) {
+                          if (!selected) {
+                            setState(() => _selectedMajor = null);
+                          } else {
+                            _showMajorFilter();
+                          }
+                        },
+                        selected: _selectedMajor != null,
+                      ),
+                    ),
+                    // Filter by Performance
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: const Text('Học lực'),
+                        avatar: _selectedPerformance != null
+                            ? const Icon(Icons.grade)
+                            : null,
+                        onSelected: (selected) {
+                          if (!selected) {
+                            setState(() => _selectedPerformance = null);
+                          } else {
+                            _showPerformanceFilter();
+                          }
+                        },
+                        selected: _selectedPerformance != null,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Display selected filters
+          if (_selectedFaculty != null ||
+              _selectedClass != null ||
+              _selectedMajor != null ||
+              _selectedPerformance != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    if (_selectedFaculty != null)
+                      Chip(
+                        label: Text('Khoa: $_selectedFaculty'),
+                        onDeleted: () =>
+                            setState(() => _selectedFaculty = null),
+                      ),
+                    if (_selectedClass != null)
+                      Chip(
+                        label: Text('Lớp: $_selectedClass'),
+                        onDeleted: () =>
+                            setState(() => _selectedClass = null),
+                      ),
+                    if (_selectedMajor != null)
+                      Chip(
+                        label: Text('Ngành: $_selectedMajor'),
+                        onDeleted: () =>
+                            setState(() => _selectedMajor = null),
+                      ),
+                    if (_selectedPerformance != null)
+                      Chip(
+                        label: Text('Học lực: $_selectedPerformance'),
+                        onDeleted: () =>
+                            setState(() => _selectedPerformance = null),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: _StatsSection(stats: stats),
             ),
           ),
@@ -111,7 +284,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
-                'Danh sách sinh viên',
+                'Danh sách sinh viên (${filteredStudents.length})',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -130,7 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Text(studentProvider.errorMessage!),
               ),
             )
-          else if (students.isEmpty)
+          else if (filteredStudents.isEmpty)
             const SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
@@ -139,13 +312,123 @@ class _DashboardScreenState extends State<DashboardScreen> {
             )
           else
             SliverList.builder(
-              itemCount: students.length,
+              itemCount: filteredStudents.length,
               itemBuilder: (context, index) {
-                return StudentCard(student: students[index]);
+                return StudentCard(student: filteredStudents[index]);
               },
             ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
+      ),
+    );
+  }
+
+  void _showFacultyFilter() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chọn khoa'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: FacultyData.faculties.map((faculty) {
+              return ListTile(
+                title: Text(faculty),
+                trailing: _selectedFaculty == faculty
+                    ? const Icon(Icons.check, color: Colors.blue)
+                    : null,
+                onTap: () {
+                  setState(() => _selectedFaculty = faculty);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showClassFilter(Set<String> availableClasses) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chọn lớp'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: availableClasses.map((className) {
+              return ListTile(
+                title: Text(className),
+                trailing: _selectedClass == className
+                    ? const Icon(Icons.check, color: Colors.blue)
+                    : null,
+                onTap: () {
+                  setState(() => _selectedClass = className);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMajorFilter() {
+    final allMajors = <String>[];
+    for (var majors in FacultyData.majorsByFaculty.values) {
+      allMajors.addAll(majors.map((m) => m.name));
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chọn ngành'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: allMajors.map((major) {
+              return ListTile(
+                title: Text(major),
+                trailing: _selectedMajor == major
+                    ? const Icon(Icons.check, color: Colors.blue)
+                    : null,
+                onTap: () {
+                  setState(() => _selectedMajor = major);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPerformanceFilter() {
+    const performances = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình'];
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Chọn loại học lực'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: performances.map((performance) {
+              return ListTile(
+                title: Text(performance),
+                trailing: _selectedPerformance == performance
+                    ? const Icon(Icons.check, color: Colors.blue)
+                    : null,
+                onTap: () {
+                  setState(() => _selectedPerformance = performance);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }

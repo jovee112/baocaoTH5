@@ -19,29 +19,23 @@ class StudentCard extends StatelessWidget {
       },
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.blue.shade100,
-            child: student.avatarUrl != null && student.avatarUrl!.isNotEmpty
-                ? Image.network(
-                    student.avatarUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.person);
-                    },
-                  )
-                : const Icon(Icons.person),
-          ),
+          contentPadding: const EdgeInsets.all(12),
+          leading: _buildStudentAvatar(),
           title: Text(
             student.name,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 4),
-              Text("MSSV: ${student.studentId}"),
-              Text("Lớp: ${student.className}"),
+              Text("MSSV: ${student.studentId}", style: const TextStyle(fontSize: 12)),
+              Text("Lớp: ${student.className}", style: const TextStyle(fontSize: 12)),
+              if (student.faculty != null)
+                Text("Khoa: ${student.faculty}", style: const TextStyle(fontSize: 11, color: Colors.grey)),
             ],
           ),
           trailing: Chip(
@@ -57,6 +51,37 @@ class StudentCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStudentAvatar() {
+    if (student.avatarUrl != null && student.avatarUrl!.isNotEmpty) {
+      return CircleAvatar(
+        radius: 28,
+        backgroundColor: Colors.grey.shade200,
+        backgroundImage: NetworkImage(student.avatarUrl!),
+        onBackgroundImageError: (exception, stackTrace) {
+          // Nếu ảnh không load được, hiển thị icon mặc định
+          debugPrint('Lỗi load ảnh: $exception');
+        },
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+          ),
+        ),
+      );
+    }
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: Colors.blue.shade100,
+      child: const Icon(Icons.person, color: Colors.blue),
     );
   }
 

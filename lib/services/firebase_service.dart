@@ -29,6 +29,19 @@ class FirebaseService {
     await _studentCollection.doc(id).delete();
   }
 
+  // Kiểm tra xem MSV đã tồn tại trong cơ sở dữ liệu chưa
+  Future<bool> isStudentIdExists(String studentId) async {
+    try {
+      final query = await _studentCollection
+          .where('studentId', isEqualTo: studentId)
+          .limit(1)
+          .get();
+      return query.docs.isNotEmpty;
+    } catch (e) {
+      throw Exception('Lỗi kiểm tra MSV: $e');
+    }
+  }
+
   Student _mapDocumentToStudent(String docId, Map<String, dynamic> data) {
     return Student(
       id: docId,
@@ -38,6 +51,12 @@ class FirebaseService {
       gpa: (data['gpa'] as num?)?.toDouble() ?? 0.0,
       email: (data['email'] as String?) ?? '',
       avatarUrl: data['avatarUrl'] as String?,
+      birthDate: data['birthDate'] != null 
+          ? DateTime.parse(data['birthDate'] as String) 
+          : null,
+      faculty: data['faculty'] as String?,
+      major: data['major'] as String?,
+      yearIn: (data['yearIn'] as num?)?.toInt(),
     );
   }
 

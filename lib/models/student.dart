@@ -7,6 +7,9 @@ class Student {
   String email;
   String? avatarUrl;
   DateTime? birthDate; // Ngày sinh
+  String? faculty; // Khoa
+  String? major; // Ngành
+  int? yearIn; // Khóa (năm vào)
 
   Student({
     required this.id,
@@ -17,6 +20,9 @@ class Student {
     required this.email,
     this.avatarUrl,
     this.birthDate,
+    this.faculty,
+    this.major,
+    this.yearIn,
   });
 
   // Đây là chìa khóa để dùng với Agent/API
@@ -29,5 +35,8 @@ class Student {
         'email': email,
         'avatarUrl': avatarUrl,
         'birthDate': birthDate?.toIso8601String(),
+        'faculty': faculty,
+        'major': major,
+        'yearIn': yearIn,
       };
 }
