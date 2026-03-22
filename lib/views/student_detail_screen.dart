@@ -17,9 +17,9 @@ class StudentDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Chi tiết sinh viên',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -186,15 +186,14 @@ class StudentDetailScreen extends StatelessWidget {
   Widget _buildEditButton(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: () {
-        Navigator.of(context)
+        final navigator = Navigator.of(context);
+        navigator
             .push(
-          MaterialPageRoute(
-            builder: (context) => AddStudentScreen(editingStudent: student),
-          ),
-        )
-            .then((_) {
-          Navigator.of(context).pop();
-        });
+              MaterialPageRoute(
+                builder: (context) => AddStudentScreen(editingStudent: student),
+              ),
+            )
+            .then((_) => navigator.pop());
       },
       icon: const Icon(Icons.edit),
       label: const Text(
@@ -218,6 +217,10 @@ class StudentDetailScreen extends StatelessWidget {
   Widget _buildDeleteButton(BuildContext context) {
     return OutlinedButton.icon(
       onPressed: () {
+        final provider = Provider.of<StudentProvider>(context, listen: false);
+        final navigator = Navigator.of(context);
+        final messenger = ScaffoldMessenger.of(context);
+
         showDialog(
           context: context,
           builder: (BuildContext ctx) {
@@ -238,13 +241,11 @@ class StudentDetailScreen extends StatelessWidget {
                 TextButton(
                   onPressed: () async {
                     Navigator.of(ctx).pop();
-                    final provider =
-                        Provider.of<StudentProvider>(context, listen: false);
                     await provider.deleteStudent(student.id);
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       const SnackBar(content: Text('Xóa sinh viên thành công')),
                     );
-                    Navigator.of(context).pop();
+                    navigator.pop();
                   },
                   child: const Text(
                     'Xóa',

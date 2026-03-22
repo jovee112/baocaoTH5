@@ -5,6 +5,10 @@ import 'package:uuid/uuid.dart';
 import '../models/student.dart';
 import '../providers/student_provider.dart';
 import '../utils/string_utils.dart';
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
+import '../services/supabase_service.dart';
+import '../services/firebase_service.dart';
 
 class AddStudentScreen extends StatefulWidget {
   final Student? editingStudent;
@@ -24,6 +28,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   late TextEditingController _gpaController;
   late TextEditingController _avatarUrlController;
   DateTime? _selectedBirthDate;
+  Uint8List? _pickedImageBytes;
+  String? _pickedImageName;
+  VoidCallback? _classNameListener;
 
   @override
   void initState() {
@@ -32,7 +39,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       text: widget.editingStudent?.name ?? '',
     );
     _studentIdController = TextEditingController(
-      text: widget.editingStudent?.studentId ?? generateStudentId(),
+      text: widget.editingStudent?.studentId ?? '',
     );
     _classNameController = TextEditingController(
       text: widget.editingStudent?.className ?? '',
@@ -46,6 +53,19 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     _avatarUrlController = TextEditingController(
       text: widget.editingStudent?.avatarUrl ?? '',
     );
+
+    // Tự động chuyển chữ trong trường lớp sang IN HOA khi gõ
+    _classNameListener = () {
+      final text = _classNameController.text;
+      final up = text.toUpperCase();
+      if (text != up) {
+        final sel = _classNameController.selection;
+        _classNameController.value = TextEditingValue(text: up, selection: sel);
+      }
+    };
+    _classNameController.addListener(_classNameListener!);
+
+    // If editing and existing avatar exists, we keep the URL in controller.
     if (widget.editingStudent?.birthDate != null) {
       _selectedBirthDate = widget.editingStudent!.birthDate;
     }
@@ -55,6 +75,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   void dispose() {
     _nameController.dispose();
     _studentIdController.dispose();
+    if (_classNameListener != null) {
+      _classNameController.removeListener(_classNameListener!);
+    }
     _classNameController.dispose();
     _emailController.dispose();
     _gpaController.dispose();
@@ -68,6 +91,10 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     }
     if (value.length < 3) {
       return 'Tên sinh viên phải ít nhất 3 ký tự';
+    }
+    final nameRegex = RegExp(r'^[\p{L}\s]+$', unicode: true);
+    if (!nameRegex.hasMatch(value)) {
+      return 'Tên chỉ được chứa chữ và khoảng trắng';
     }
     return null;
   }
@@ -88,7 +115,15 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     if (value == null || value.isEmpty) {
       return 'GPA không được để trống';
     }
-    final gpa = double.tryParse(value);
+    final gpaStr = value.trim();
+    // Cho phép số nguyên hoặc số thập phân với tối đa 2 chữ số sau dấu phẩy
+    final gpaFormat = RegExp(
+      r'^\d+(?:\.\d{1,2})?$',
+    );
+    if (!gpaFormat.hasMatch(gpaStr)) {
+      return 'GPA chỉ được tối đa 2 chữ số phần thập phân';
+    }
+    final gpa = double.tryParse(gpaStr);
     if (gpa == null) {
       return 'GPA phải là một số';
     }
@@ -101,6 +136,10 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   String? _validateStudentId(String? value) {
     if (value == null || value.isEmpty) {
       return 'Mã sinh viên không được để trống';
+    }
+    final onlyDigits = RegExp(r'^\d{10}$');
+    if (!onlyDigits.hasMatch(value)) {
+      return 'Mã sinh viên phải là 10 chữ số';
     }
     return null;
   }
@@ -133,13 +172,57 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     }
   }
 
-  void _saveStudent() {
+  Future<void> _saveStudent() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     final studentProvider =
         Provider.of<StudentProvider>(context, listen: false);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    String? avatarUrl = _avatarUrlController.text.trim().isEmpty
+        ? null
+        : _avatarUrlController.text.trim();
+
+    // If user picked a new image, upload it to Supabase and get URL
+    // Note: upload is synchronous here for simplicity; we perform upload before creating the Student object.
+    // In case of upload failure we proceed without avatar.
+    if (_pickedImageBytes != null && _pickedImageName != null) {
+      final supa = SupabaseService();
+      final filename =
+          '${DateTime.now().millisecondsSinceEpoch}_$_pickedImageName';
+      final url = await supa.uploadAvatar(_pickedImageBytes!, filename);
+      if (url != null) avatarUrl = url;
+    }
+
+    // Kiểm tra email trùng (nếu thêm mới hoặc đổi email khi chỉnh sửa)
+    final firebaseService = FirebaseService();
+    final emailTrim = _emailController.text.trim();
+    final existingDocId =
+        await firebaseService.findStudentDocIdByEmail(emailTrim);
+    if (existingDocId != null &&
+        (widget.editingStudent == null ||
+            widget.editingStudent!.id != existingDocId)) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Email đã tồn tại trong hệ thống')),
+      );
+      return;
+    }
+
+    // Kiểm tra MSSV trùng
+    final studentIdTrim = _studentIdController.text.trim();
+    final existingMssvDocId =
+        await firebaseService.findStudentDocIdByStudentId(studentIdTrim);
+    if (existingMssvDocId != null &&
+        (widget.editingStudent == null ||
+            widget.editingStudent!.id != existingMssvDocId)) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Mã sinh viên (MSSV) đã tồn tại')),
+      );
+      return;
+    }
 
     final newStudent = Student(
       id: widget.editingStudent?.id ?? const Uuid().v4(),
@@ -147,26 +230,24 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       studentId: _studentIdController.text.trim(),
       className: _classNameController.text.trim(),
       gpa: double.parse(_gpaController.text.trim()),
-      email: _emailController.text.trim(),
-      avatarUrl: _avatarUrlController.text.trim().isEmpty
-          ? null
-          : _avatarUrlController.text.trim(),
+      email: emailTrim,
+      avatarUrl: avatarUrl,
       birthDate: _selectedBirthDate,
     );
 
     if (widget.editingStudent != null) {
       studentProvider.updateStudent(newStudent);
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('Cập nhật sinh viên thành công')),
       );
     } else {
       studentProvider.addStudent(newStudent);
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('Thêm sinh viên thành công')),
       );
     }
 
-    Navigator.of(context).pop();
+    navigator.pop();
   }
 
   @override
@@ -204,10 +285,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
               _buildTextFormField(
                 controller: _studentIdController,
                 label: 'Mã sinh viên (MSSV)',
-                hint: 'Tự động sinh',
+                hint: 'Nhập MSSV (10 chữ số)',
                 prefixIcon: Icons.badge,
                 validator: _validateStudentId,
-                readOnly: true,
               ),
               const SizedBox(height: 16),
               _buildTextFormField(
@@ -237,12 +317,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 validator: _validateGpa,
               ),
               const SizedBox(height: 16),
-              _buildTextFormField(
-                controller: _avatarUrlController,
-                label: 'Ảnh đại diện (URL)',
-                hint: 'Nhập URL ảnh (tùy chọn)',
-                prefixIcon: Icons.image,
-              ),
+              _buildImagePicker(),
               const SizedBox(height: 16),
               _buildBirthDatePicker(),
               const SizedBox(height: 32),
@@ -257,38 +332,131 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   }
 
   Widget _buildBirthDatePicker() {
-    return InkWell(
-      onTap: _pickBirthDate,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: 'Ngày sinh',
-          hintText: 'Chọn ngày sinh',
-          prefixIcon: const Icon(Icons.calendar_today),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Colors.blue,
-              width: 2,
+    return FormField<DateTime>(
+      initialValue: _selectedBirthDate,
+      validator: (val) {
+        return _selectedBirthDate == null ? 'Ngày sinh là bắt buộc' : null;
+      },
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: () async {
+                await _pickBirthDate();
+                state.didChange(_selectedBirthDate);
+              },
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: 'Ngày sinh',
+                  hintText: 'Chọn ngày sinh',
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: Colors.blue,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  errorText: state.errorText,
+                ),
+                child: Text(
+                  _selectedBirthDate != null
+                      ? DateFormat('dd/MM/yyyy').format(_selectedBirthDate!)
+                      : 'Chưa chọn',
+                  style: TextStyle(
+                    color:
+                        _selectedBirthDate != null ? Colors.black : Colors.grey,
+                  ),
+                ),
+              ),
             ),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
-        ),
-        child: Text(
-          _selectedBirthDate != null
-              ? DateFormat('dd/MM/yyyy').format(_selectedBirthDate!)
-              : 'Chưa chọn',
-          style: TextStyle(
-            color: _selectedBirthDate != null ? Colors.black : Colors.grey,
-          ),
-        ),
-      ),
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 12.0),
+                child: Text(
+                  state.errorText ?? '',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.error, fontSize: 12),
+                ),
+              ),
+          ],
+        );
+      },
     );
+  }
+
+  Widget _buildImagePicker() {
+    final hasExisting = _avatarUrlController.text.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Ảnh đại diện',
+            style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: _pickedImageBytes != null
+                    ? Image.memory(_pickedImageBytes!, fit: BoxFit.cover)
+                    : hasExisting
+                        ? Image.network(_avatarUrlController.text,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.person))
+                        : const Icon(Icons.photo_camera_outlined),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Chọn ảnh'),
+                  ),
+                  if (_pickedImageName != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(_pickedImageName!,
+                          style: const TextStyle(fontSize: 12)),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickImage() async {
+    final result = await FilePicker.platform
+        .pickFiles(type: FileType.image, withData: true);
+    if (result == null) return;
+    final file = result.files.first;
+    if (file.bytes == null) return;
+    setState(() {
+      _pickedImageBytes = file.bytes;
+      _pickedImageName = file.name;
+    });
   }
 
   Widget _buildTextFormField({
@@ -337,7 +505,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
   Widget _buildSaveButton() {
     return ElevatedButton.icon(
-      onPressed: _saveStudent,
+      onPressed: () => _saveStudent(),
       icon: const Icon(Icons.save),
       label: Text(
         widget.editingStudent != null ? 'Cập nhật' : 'Lưu',
@@ -347,8 +515,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         ),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

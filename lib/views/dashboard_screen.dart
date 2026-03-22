@@ -38,6 +38,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           );
         },
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         icon: const Icon(Icons.person_add_alt_1),
         label: const Text('Thêm sinh viên'),
       ),
@@ -48,7 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             pinned: true,
             floating: false,
             centerTitle: true,
-            title: const Text('Dashboard Sinh viên'),
+            title: const Text('Quản lý Sinh viên - Nhóm 4'),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
@@ -95,6 +97,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                 ],
                 onChanged: (value) {
+                  // Giới hạn độ dài tìm kiếm tối đa 40 ký tự
+                  if (value.length > 40) {
+                    final messenger = ScaffoldMessenger.of(context);
+                    messenger.showSnackBar(
+                      const SnackBar(
+                          content: Text('Tối đa 40 ký tự cho tìm kiếm')),
+                    );
+                    final trimmed = value.substring(0, 40);
+                    // Cập nhật controller và con trỏ
+                    _searchController.text = trimmed;
+                    _searchController.selection =
+                        TextSelection.collapsed(offset: trimmed.length);
+                    value = trimmed;
+                  }
                   context.read<StudentProvider>().searchStudent(value);
                   setState(() {});
                 },
