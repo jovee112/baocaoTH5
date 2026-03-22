@@ -30,4 +30,29 @@ class Student {
         'avatarUrl': avatarUrl,
         'birthDate': birthDate?.toIso8601String(),
       };
+
+  factory Student.fromMap(Map<String, dynamic> map) {
+    DateTime? bd;
+    final bdRaw = map['birthDate'];
+    if (bdRaw is String && bdRaw.isNotEmpty) {
+      try {
+        bd = DateTime.parse(bdRaw);
+      } catch (_) {
+        bd = null;
+      }
+    }
+
+    return Student(
+      id: (map['id'] as String?) ?? '',
+      name: (map['name'] as String?) ?? '',
+      studentId: (map['studentId'] as String?) ?? '',
+      className: (map['className'] as String?) ?? '',
+      gpa: (map['gpa'] is num)
+          ? (map['gpa'] as num).toDouble()
+          : double.tryParse('${map['gpa']}') ?? 0.0,
+      email: (map['email'] as String?) ?? '',
+      avatarUrl: map['avatarUrl'] as String?,
+      birthDate: bd,
+    );
+  }
 }
