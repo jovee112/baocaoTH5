@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart'; // Thêm dòng này
 import 'firebase_options.dart'; // File do FlutterFire CLI tạo ra
 import 'providers/student_provider.dart';
+// ignore: unused_import
 import 'views/dashboard_screen.dart';
+import 'views/welcome_screen.dart';
 
 void main() async {
   // 1. Đảm bảo các dịch vụ của Flutter đã sẵn sàng
@@ -91,7 +93,7 @@ class MyApp extends StatelessWidget {
         // General visual density and typography
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const DashboardScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }
