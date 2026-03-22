@@ -162,7 +162,7 @@ class _StatsSection extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+      color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.55),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

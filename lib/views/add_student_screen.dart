@@ -361,9 +361,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     return OutlinedButton.icon(
       onPressed: () => Navigator.of(context).pop(),
       icon: const Icon(Icons.close),
-      label: Text(
+      label: const Text(
         'Hủy',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),

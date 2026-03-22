@@ -197,9 +197,9 @@ class StudentDetailScreen extends StatelessWidget {
         });
       },
       icon: const Icon(Icons.edit),
-      label: Text(
+      label: const Text(
         'Chỉnh sửa',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
@@ -222,13 +222,13 @@ class StudentDetailScreen extends StatelessWidget {
           context: context,
           builder: (BuildContext ctx) {
             return AlertDialog(
-              title: Text(
+              title: const Text(
                 'Xác nhận xóa',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              content: Text(
+              content: const Text(
                 'Bạn có chắc chắn muốn xóa sinh viên này?',
-                style: const TextStyle(),
+                style: TextStyle(),
               ),
               actions: [
                 TextButton(
@@ -257,9 +257,9 @@ class StudentDetailScreen extends StatelessWidget {
         );
       },
       icon: const Icon(Icons.delete),
-      label: Text(
+      label: const Text(
         'Xóa',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
