@@ -117,6 +117,16 @@ class StudentProvider extends ChangeNotifier {
     }).toList();
   }
 
+  // Kiểm tra xem MSV đã tồn tại trong cơ sở dữ liệu chưa
+  Future<bool> isStudentIdExists(String studentId) async {
+    try {
+      return await _firebaseService.isStudentIdExists(studentId);
+    } catch (e) {
+      debugPrint('Lỗi kiểm tra MSV: $e');
+      rethrow;
+    }
+  }
+
   @override
   void dispose() {
     _studentsSubscription?.cancel();

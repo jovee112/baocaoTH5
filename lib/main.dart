@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart'; // Thêm dòng này
-import 'firebase_options.dart'; // File do FlutterFire CLI tạo ra
+import 'package:firebase_core/firebase_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'firebase_options.dart';
+import 'config/supabase_config.dart';
 import 'providers/student_provider.dart';
 import 'views/dashboard_screen.dart';
 
@@ -14,10 +16,16 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // 3. Khởi tạo Supabase
+  await Supabase.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseAnonKey,
+  );
+
   runApp(
     MultiProvider(
       providers: [
-        // 3. Khởi tạo Provider và gọi ngay hàm fetch để tải dữ liệu từ Firebase
+        // 4. Khởi tạo Provider và gọi ngay hàm fetch để tải dữ liệu từ Firebase
         ChangeNotifierProvider(
           create: (_) => StudentProvider()..fetchStudents(),
         ),
